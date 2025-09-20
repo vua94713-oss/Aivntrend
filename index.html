@@ -1,0 +1,95 @@
+<!-- 
+  HƯỚNG DẪN SỬA LỖI MÀN HÌNH ĐEN KHI DEPLOY
+  Chào bạn, tôi đã xem xét kỹ lưỡng code của bạn. Vấn đề không nằm ở logic trong các file .tsx, mà là ở cách bạn triển khai (deploy) trang web.
+
+  *** VẤN ĐỀ CỐT LÕI ***
+  Trang web của bạn được viết bằng TypeScript và JSX (các file có đuôi .ts, .tsx). Trình duyệt web không thể đọc trực tiếp loại file này. Chúng cần được "biên dịch" (build) thành JavaScript thuần túy trước.
+  - Khi bạn chạy trên môi trường phát triển (như AI Studio), máy chủ sẽ tự động biên dịch các file này cho bạn.
+  - Khi bạn deploy lên Netlify hoặc Google Cloud, bạn phải yêu cầu dịch vụ đó chạy quá trình biên dịch này.
+
+  Việc bạn chỉ đẩy code .tsx lên và phục vụ chúng trực tiếp khiến trình duyệt không hiểu và gây ra lỗi màn hình trắng/đen.
+
+  *** GIẢI PHÁP ***
+  Bạn cần tạo một file cấu hình để Netlify (hoặc dịch vụ tương tự) biết cách build trang web của bạn.
+
+  1. TẠO FILE MỚI:
+     Ở thư mục gốc của dự án (ngang hàng với `index.html` và `package.json`), hãy tạo một file mới và đặt tên chính xác là `netlify.toml`.
+
+  2. DÁN NỘI DUNG NÀY VÀO FILE `netlify.toml`:
+    
+     [build]
+       command = "npm run build"
+       publish = "dist"
+
+     [build.environment]
+       NODE_VERSION = "18"
+
+  3. KIỂM TRA FILE `package.json`:
+     Hãy chắc chắn rằng file `package.json` của bạn có một mục "scripts" giống như sau, đặc biệt là dòng `"build": "vite build"`:
+    
+     "scripts": {
+       "dev": "vite",
+       "build": "vite build",
+       "preview": "vite preview"
+     },
+
+  4. DEPLOY LẠI:
+     Lưu file `netlify.toml` lại và đẩy (push) tất cả các thay đổi lên GitHub. Netlify sẽ tự động phát hiện file mới, chạy lệnh build, và xuất bản trang web một cách chính xác.
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tạo ảnh trend</title>
+    <script>
+      // Set theme before rendering to prevent flash
+      if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              cream: '#F5EEDC',
+              olive: '#6A7B53',
+              'dark-olive': '#2A2F23',
+              'light-olive': '#B1C398',
+            },
+            keyframes: {
+              'fade-in': {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+            },
+            animation: {
+              'fade-in': 'fade-in 0.5s ease-out forwards',
+            },
+          },
+        },
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-cream dark:bg-dark-olive transition-colors duration-300">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
